@@ -258,10 +258,6 @@ function selArea(value){
 	}
 	
 	
-//	area = localStorage.area = value;
-//	$('#list_ul').empty();
-//	page_num=-1;
-	
 }
 
 function codeLatLng( latlng, callback ) {
@@ -283,3 +279,170 @@ var geocoder = new google.maps.Geocoder();
   }
 }
 
+function queryctc(RetlName, Group, ZipCode, Addr, GMCC, TCC){
+			
+		$('#resList').empty();
+	
+			/*//var RetlName = $("#RetlName").val();
+			//var Group = $("#Group").val();
+			//var ZipCode =  $("#ZipCode").val();
+			//var Addr = $("#Addr").val();
+			//var GMCC = $("#GMCC").val();
+			//var TCC = $("#TCC").val();
+			var RetlName ="";
+			var Group ="009";
+			var ZipCode = "428";
+			var Addr = "";
+			var GMCC = "";
+			var TCC ="";*/
+			
+			var prefixUrl = 'http://travel.nccc.com.tw/NASApp/NTC/servlet/com.du.mvc.EntryServlet?Action=RetailerList&Type=GetFull&';
+			
+			var weburl = "";
+			
+			var queriesNum ="", allhtml="";
+			
+			listadd( 1, "" );
+			
+			//share listadd function
+			function listadd( pageNum) {
+
+				if (pageNum == 1 ){
+					weburl = prefixUrl +'WebMode=text&RetlName='+ RetlName +'&Group=' + Group + '&ZipCode=' + ZipCode + '&Addr=' +  Addr + '&GMCC=' + GMCC + '&TCC=' + TCC+ '&RequestType=0';
+					
+				}
+				else{
+					$('.more_li').remove();	
+					weburl = prefixUrl + '&Request=NULL_NULL_' + (RetlName == "" ? "NULL" : RetlName) + '_' +   (Group == "" ? "NULL" : Group) + '_' + 
+					(ZipCode == "" ? "NULL" : ZipCode)+ '_' + (Addr == "" ? "NULL" : Addr) + '_' + (GMCC == "" ? "NULL" : GMCC) + '_' + (TCC == "" ? "NULL" : TCC)  +
+					'_NULL_0_'+ pageNum + '_20_' +  queriesNum ;
+
+					
+					if (queriesNum=""){
+								console.log('queriesNum is empty');
+								return;
+					}
+				}
+				
+				$.mobile.showPageLoadingMsg();
+				
+				 $.ajax({
+					type: 'GET',
+					url: weburl,
+					success: function(res) {
+						var count=0, html ="", firstitem, idx ;
+						
+						var str= $(res.responseText).find("td").text();
+						
+						var idx = str.indexOf("總筆數");
+						
+						if (idx == -1){
+							alert('沒有東西了!!');
+							return;
+						}
+						
+						//if (pageNum == 1 ){
+							queriesNum = $.trim( str.substr(  idx  + 4 ,  7 ) );
+						//}
+						
+						var tmpstr = str.substr( 0 ,  str.indexOf("相關資料")+5 );
+						str = str.replace(tmpstr, "");
+						str = str.slice( 0 ,  str.indexOf("總筆數") );
+						str = str.split("詳細內容\n");
+					
+						
+					for(i in str){
+						tmpstr = str[i].split("\n");
+						count=0;
+						
+					 for (j in tmpstr) {				
+						if ( tmpstr[j].length >28 && count< 4){					
+							
+							if (count ==0)
+							{
+								firstitem = $.trim(tmpstr[j]);
+							}
+							else if (count==1)
+							{
+							html +=  '<li cat="'+  $.trim(tmpstr[j]) +'">' + firstitem +
+									'<ul><li data-icon="false" ><a href="#">'+$.trim(tmpstr[j])+'</a></li>';						
+							}
+							 else if (count==2){
+							 html +=  	'<li data-icon="grid"><a tel="'+$.trim(tmpstr[j])+'">'+$.trim(tmpstr[j])+'</a></li>';	
+							 }
+							 else
+							 {
+							 html += 	'<li data-icon="info"><a href="geo:0,0?q='+$.trim(tmpstr[j])+'">'+$.trim(tmpstr[j])+'</a></li>'+
+										'<a href="#" data-role="button" data-rel="back">返回</a>  </ul> </li>';	
+							 }
+							 count++;
+							}
+					 }
+					}
+					
+					var restNum = queriesNum -  20 * pageNum;
+					
+					allhtml += html;
+					
+					$('.ul').remove();
+					$('#resList').empty();
+					
+					if (restNum > 0){
+						//html += '<li data-icon="false" class="more_li"><a href="#" id="list_more_btn">還有 '+ restNum  +'個商店<br>再載入 '+Math.min(20, restNum)+' 個</a></li>';
+						$('#resList').append(allhtml + '<li data-icon="false" class="more_li"><a href="#" id="list_more_btn"><i>還有 '+ restNum  +'個商家  再多載入 '+Math.min(20, restNum)+' 個</i></a></li>');
+					}
+					else{
+						$('#resList').append(allhtml);
+					}
+						
+						$('#resList').listview({
+						autodividers: true,
+						autodividersSelector: function (li) {
+							return li.attr('cat');
+						}
+						});						
+						$('#resList').listview('refresh');
+						
+						$.mobile.hidePageLoadingMsg();
+						
+						/*list more function*/
+						$("#list_more_btn").bind('click', function () {
+							
+							listadd( ++pageNum );
+						});
+						
+						/*sort button function*/
+						$("#list_sort_btn").bind('click', function () {
+						
+							
+							var moreli = $('.more_li').text();	
+							
+							$('.more_li').remove();	
+							
+							$("li[cat]").tsort( {attr:"cat"} ); //.tsort({attr:'cat'});	
+							
+							if (restNum > 0){							
+								$('#resList').append( '<li data-icon="false" class="more_li"><a href="#" id="list_more_btn"><i>'+ moreli + '</i></a></li>' );	
+							}
+						
+							$('#resList').listview('refresh');
+							
+
+							$("#list_more_btn").bind('click', function () {			
+							listadd( ++pageNum );
+							});
+						});
+
+
+
+					},
+					error: function (res) {
+						alert('Server Offline!!');
+					}
+				});
+	
+			}
+			
+			
+				
+	}
