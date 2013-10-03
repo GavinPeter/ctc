@@ -14,6 +14,7 @@ public class MainActivity extends DroidGap {
         super.setIntegerProperty("splashscreen", R.drawable.splash);
        
         super.loadUrl(Config.getStartUrl(), 2500);
+
 	}
 
 }
