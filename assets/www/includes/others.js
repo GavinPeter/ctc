@@ -368,7 +368,7 @@ function queryctc(RetlName, Group, ZipCode, Addr, GMCC, TCC){
 									'<ul><li data-icon="false" ><a href="#">'+$.trim(tmpstr[j])+'</a></li>';						
 							}
 							 else if (count==2){
-							 html +=  	'<li data-icon="grid"><a tel="'+$.trim(tmpstr[j])+'">'+$.trim(tmpstr[j])+'</a></li>';	
+							 html +=  	'<li data-icon="grid"><a href="tel:'+$.trim(tmpstr[j])+'">'+$.trim(tmpstr[j])+'</a></li>';	
 							 }
 							 else
 							 {
